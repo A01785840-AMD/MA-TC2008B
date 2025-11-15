@@ -208,3 +208,6 @@ __marimo__/
 
 
 .python-version
+.nvmrc
+node_modules/
+.idea/
