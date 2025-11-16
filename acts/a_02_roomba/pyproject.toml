@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "a_02_roomba"
+version = "0.1.0"
+description = "Roomba simulations with Solara pages"
+readme = "README.md"
+authors = [{name = "Angel"}]
+classifiers = ["Programming Language :: Python :: 3"]
+requires-python = ">=3.10"
+
+[tool.setuptools]
+package-dir = {"a_02_roomba" = "."}
+packages = [
+  "a_02_roomba",
+  "a_02_roomba.pages",
+  "a_02_roomba.simulation_1",
+  "a_02_roomba.simulation_2"
+]
