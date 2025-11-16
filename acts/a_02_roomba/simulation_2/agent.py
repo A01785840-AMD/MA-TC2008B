@@ -2,17 +2,15 @@ from typing import List, TYPE_CHECKING
 
 from mesa.discrete_space import CellAgent, FixedAgent
 
-if TYPE_CHECKING:  # avoid circular import at runtime
-    from .model import RoombaModel
+if TYPE_CHECKING:
+    from .model import MultiRoombaModel
 
 
 class DirtPatch(FixedAgent):
-    """Represents a patch of dirt that can be cleaned by a Roomba."""
-
     def __init__(self, model, cell):
         super().__init__(model)
         self.cell = cell
-        self.dirty = True  # Initially dirty
+        self.dirty = True
 
     def clean(self):
         if self.dirty:
@@ -21,41 +19,29 @@ class DirtPatch(FixedAgent):
 
 
 class Obstacle(FixedAgent):
-    """Represents an obstacle that blocks movement."""
-
     def __init__(self, model, cell):
         super().__init__(model)
         self.cell = cell
 
 
 class ChargingStation(FixedAgent):
-    """Represents a charging station. Agents on this cell can recharge."""
-
     def __init__(self, model, cell):
         super().__init__(model)
         self.cell = cell
 
 
-class RoombaAgent(CellAgent):
-    """Cleaning agent with battery and simple behavior hierarchy (subsumption).
-
-    Behavior priority:
-    1. Recharge if at station and battery < 100.
-    2. Move toward nearest station if battery low (< low_battery_threshold).
-    3. Clean current cell if dirty.
-    4. Explore (random move to non-obstacle cell).
-    """
-
-    def __init__(self, model: 'RoombaModel', cell, low_battery_threshold: int = 20):
+class MultiRoomba(CellAgent):
+    def __init__(self, model: 'MultiRoombaModel', cell, agent_id: int, low_battery_threshold: int = 20):
         super().__init__(model)
         self.cell = cell
+        self.agent_id = agent_id
         self.battery = 100
         self.low_battery_threshold = low_battery_threshold
         self.moves = 0
-        self._home_station_cell = cell  # Initial charging station cell reference
+        self.cleaned_cells = 0
+        self.home_station_cell = cell
 
-    # ----------------- Helper / Perception Methods -----------------
-    def on_charging_station(self) -> bool:
+    def on_station(self):
         return any(isinstance(a, ChargingStation) for a in self.cell.agents)
 
     def current_dirt(self) -> DirtPatch | None:
@@ -67,29 +53,26 @@ class RoombaAgent(CellAgent):
     def obstacles_in_cell(self, cell) -> bool:
         return any(isinstance(a, Obstacle) for a in cell.agents)
 
-    def charging_stations(self) -> List[ChargingStation]:
+    def stations(self) -> List[ChargingStation]:
         return list(self.model.agents_by_type[ChargingStation])
 
-    # ----------------- Navigation -----------------
-    def manhattan_distance(self, cell_a, cell_b) -> int:
-        ax, ay = cell_a.coordinate
-        bx, by = cell_b.coordinate
+    def manhattan(self, a, b):
+        ax, ay = a.coordinate
+        bx, by = b.coordinate
         return abs(ax - bx) + abs(ay - by)
 
     def nearest_station_cell(self):
-        stations = self.charging_stations()
-        if not stations:
+        sts = self.stations()
+        if not sts:
             return None
-        return min((s.cell for s in stations), key=lambda c: self.manhattan_distance(self.cell, c))
+        return min((s.cell for s in sts), key=lambda c: self.manhattan(self.cell, c))
 
     def step_toward(self, target_cell):
-        """Take one step toward target using greedy Manhattan approach avoiding obstacles."""
         if target_cell is None:
             return False
         tx, ty = target_cell.coordinate
         sx, sy = self.cell.coordinate
         candidates = []
-        # Determine primary directions
         if tx > sx:
             candidates.append((sx + 1, sy))
         elif tx < sx:
@@ -98,17 +81,14 @@ class RoombaAgent(CellAgent):
             candidates.append((sx, sy + 1))
         elif ty < sy:
             candidates.append((sx, sy - 1))
-        # If both axes aligned choose any orth direction to reduce distance
-        # Filter valid neighbor cells
-        valid_cells = []
+        valid = []
         for coord in candidates:
             cell = self.model.grid.cell_at(coord, ignore_out_of_bounds=True)  # type: ignore[attr-defined]
-            if cell is not None and not self.obstacles_in_cell(cell):
-                valid_cells.append(cell)
-        if not valid_cells:
+            if cell and not self.obstacles_in_cell(cell):
+                valid.append(cell)
+        if not valid:
             return False
-        # Choose first (deterministic) or random among valid
-        chosen = self.random.choice(valid_cells)
+        chosen = self.random.choice(valid)
         if chosen is not self.cell:
             self.cell = chosen
             self.moves += 1
@@ -121,54 +101,47 @@ class RoombaAgent(CellAgent):
         if len(neighbors) == 0:
             return False
         chosen = neighbors.select_random_cell()
-        if chosen is not None and chosen is not self.cell:
+        if chosen and chosen is not self.cell:
             self.cell = chosen
             self.moves += 1
             self.battery -= 1
             return True
         return False
 
-    # ----------------- Behavior -----------------
-    def recharge_behavior(self):
-        if self.on_charging_station() and self.battery < 100:
-            # Recharge 5% per step on station
+    def recharge(self):
+        if self.on_station() and self.battery < 100:
             self.battery = min(100, self.battery + 5)
-            return True  # Consumes the step (no battery cost per spec)
+            return True
         return False
 
-    def low_battery_behavior(self):
-        if self.battery <= self.low_battery_threshold and not self.on_charging_station():
-            target = self.nearest_station_cell()
-            moved = self.step_toward(target)
-            return moved
+    def low_battery(self):
+        if self.battery <= self.low_battery_threshold and not self.on_station():
+            return self.step_toward(self.nearest_station_cell())
         return False
 
-    def clean_behavior(self):
+    def clean(self):
         dirt = self.current_dirt()
         if dirt:
             dirt.clean()
-            # Cleaning is an action costing battery
+            self.cleaned_cells += 1
             self.battery -= 1
             return True
         return False
 
-    def explore_behavior(self):
+    def explore(self):
         return self.random_move()
 
     def step(self):
-        # If no battery and not at station: remain idle until recharged
-        if self.battery <= 0 and not self.on_charging_station():
+        if self.battery <= 0 and not self.on_station():
             return
-        # Priority order
-        if self.recharge_behavior():
+        if self.recharge():
             return
-        if self.low_battery_behavior():
+        if self.low_battery():
             return
-        if self.clean_behavior():
+        if self.clean():
             return
-        self.explore_behavior()
+        self.explore()
 
-        # If everything cleaned, model can mark completion
         if self.model.cleaned_dirty_cells >= self.model.total_dirty_cells:  # type: ignore[attr-defined]
             if self.model.time_to_clean is None:
                 self.model.time_to_clean = self.model.steps
