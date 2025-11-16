@@ -3,9 +3,9 @@ import GUI from "lil-gui";
 
 const scene = {
     object: {
-        height: 0,
-        facesNum: 0,
-        halfWidth: 0,
+        facesNum: 4,
+        height: 1,
+        halfWidth: 0.5,
     }
 }
 
@@ -34,6 +34,69 @@ class OutputAPI {
         }</ul>`;
     }
 
+    buildObject(
+        faces: number = scene.object.facesNum,
+        dim: { width: number, height: number } = {
+            width: scene.object.halfWidth,
+            height: scene.object.height
+        }
+    ) {
+        // ${
+        //     Array(faces)
+        //         .fill(0)
+        //         .map((elm: number, i: number) =>
+        //             (`v ${elm}  # ${i}`)
+        //         )
+        //         .join('\n')
+        // }
+        const halfWidth = dim.width;
+        const halfHeight = dim.height / 2;
+
+        const output = `
+            # Created by me :)
+            # Faces: ${faces}
+            # Dimensions: (${dim.width}, ${dim.height})
+            
+            o Cube
+            
+            v ${-halfWidth} ${halfHeight} -1.0
+            v ${halfWidth} ${halfHeight} -1.0
+            v ${halfWidth} ${-halfHeight} -1.0
+            v ${-halfWidth} ${-halfHeight} -1.0
+            
+            v ${-halfWidth} ${halfHeight} 1.0
+            v ${halfWidth} ${halfHeight} 1.0
+            v ${halfWidth} ${-halfHeight} 1.0
+            v ${-halfWidth} ${-halfHeight} 1.0
+            
+            # back face
+            f 1 2 3
+            f 3 4 1
+            
+            # front face
+            f 7 6 5
+            f 5 8 7
+            
+            # left face
+            f 8 5 1
+            f 1 4 8
+            
+            # right face
+            f 2 6 7
+            f 7 3 2
+            
+            #lower face
+            f 7 8 4
+            f 4 3 7
+            
+            # upper face
+            f 6 2 1
+            f 1 5 6
+        `;
+
+        this.output.innerText = `${output}`;
+    }
+
 }
 
 
@@ -42,28 +105,25 @@ function setUpUI(api: OutputAPI) {
 
     const folderConfigObj = gui.addFolder('Object configuration (.obj)');
 
-    const facesElm = api.getElement()
     folderConfigObj
         .add(scene.object, 'facesNum', 4, 36, 1)
         .name(`Number of Faces`)
-        .onChange((value: number) => {
-            api.update(`Faces value: ${value}`, facesElm);
+        .onChange(() => {
+            api.buildObject();
         });
 
-    const heightElm = api.getElement();
     folderConfigObj
-        .add(scene.object, 'height', 0.0, 100.0, 0.5)
+        .add(scene.object, 'height', 1.0, 100.0, 0.5)
         .name('Object height')
-        .onChange((value: number) => {
-            api.update(`Height value: ${value}`, heightElm);
+        .onChange(() => {
+            api.buildObject();
         });
 
-    const widthElm = api.getElement();
     folderConfigObj
-        .add(scene.object, 'halfWidth', 0.0, 100.0, 0.5)
+        .add(scene.object, 'halfWidth', 0.5, 100.0, 0.5)
         .name('Object half width')
-        .onChange((value: number) => {
-            api.update(`Width value: ${value}`, widthElm);
+        .onChange(() => {
+            api.buildObject();
         });
 
     folderConfigObj.open();
@@ -72,10 +132,33 @@ function setUpUI(api: OutputAPI) {
 
 
 function main() {
-    const output = document.getElementById('output');
-
+    const output = document.getElementById('output') as HTMLElement;
     const outputApi = new OutputAPI(output as HTMLElement);
-    
+    const cpOutput = document.getElementById('cp-output') as HTMLButtonElement;
+
+
+    cpOutput.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(output.textContent);
+        } catch (err) {
+            window.alert(`Failed to copy: ${err}`)
+        }
+
+        const content = (output.textContent ?? '').trim().split('            ').join('\n');
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'model.obj';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+    });
+    outputApi.buildObject();
+
     setUpUI(outputApi);
 
     return 0;
