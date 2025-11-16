@@ -79,6 +79,22 @@ class MultiRoombaModel(Model):
 
         self.running = True
         self.datacollector.collect(self)
+        self._align_datacollector_lengths()
+
+    def _align_datacollector_lengths(self) -> None:
+        try:
+            vars_dict = getattr(self.datacollector, "model_vars", None)
+            if not vars_dict:
+                return
+            lengths = [len(v) for v in vars_dict.values()]
+            if not lengths:
+                return
+            min_len = min(lengths)
+            for k, v in list(vars_dict.items()):
+                if len(v) > min_len:
+                    vars_dict[k] = v[:min_len]
+        except Exception:
+            pass
 
     def step(self):
         if self.steps >= self.max_execution_steps:
@@ -87,8 +103,8 @@ class MultiRoombaModel(Model):
             return
         self.agents_by_type[MultiRoomba].do("step")
         self.datacollector.collect(self)
+        self._align_datacollector_lengths()
 
         if self.time_to_clean is not None or self.steps >= self.max_execution_steps:
             if self.time_to_clean is not None:
                 self.running = False
-

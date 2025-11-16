@@ -77,6 +77,26 @@ class RoombaModel(Model):
 
         self.running = True
         self.datacollector.collect(self)
+        self._align_datacollector_lengths()
+
+    def _align_datacollector_lengths(self) -> None:
+        """Ensure all model_var series have the same length to avoid pandas mismatch.
+        Trims longer series to the minimum length observed.
+        """
+        try:
+            vars_dict = getattr(self.datacollector, "model_vars", None)
+            if not vars_dict:
+                return
+            lengths = [len(v) for v in vars_dict.values()]
+            if not lengths:
+                return
+            min_len = min(lengths)
+            for k, v in list(vars_dict.items()):
+                if len(v) > min_len:
+                    vars_dict[k] = v[:min_len]
+        except Exception:
+            # Non-fatal safeguard; plotting should still work
+            pass
 
     def step(self):
         if self.steps >= self.max_execution_steps:
@@ -85,6 +105,7 @@ class RoombaModel(Model):
             return
         self.agents_by_type[RoombaAgent].do("step")
         self.datacollector.collect(self)
+        self._align_datacollector_lengths()
 
         if self.time_to_clean is not None or self.steps >= self.max_execution_steps:
             # End simulation if cleaning done or time exceeded

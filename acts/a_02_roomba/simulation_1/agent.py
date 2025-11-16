@@ -102,9 +102,12 @@ class RoombaAgent(CellAgent):
         # Filter valid neighbor cells
         valid_cells = []
         for coord in candidates:
-            cell = self.model.grid.cell_at(coord, ignore_out_of_bounds=True)  # type: ignore[attr-defined]
-            if cell is not None and not self.obstacles_in_cell(cell):
-                valid_cells.append(cell)
+            x, y = coord
+            # bounds check against model dimensions
+            if 0 <= x < self.model.width and 0 <= y < self.model.height:
+                cell = self.model.grid[x, y]
+                if cell is not None and not self.obstacles_in_cell(cell):
+                    valid_cells.append(cell)
         if not valid_cells:
             return False
         # Choose first (deterministic) or random among valid

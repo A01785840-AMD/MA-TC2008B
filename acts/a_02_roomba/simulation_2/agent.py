@@ -83,9 +83,11 @@ class MultiRoomba(CellAgent):
             candidates.append((sx, sy - 1))
         valid = []
         for coord in candidates:
-            cell = self.model.grid.cell_at(coord, ignore_out_of_bounds=True)  # type: ignore[attr-defined]
-            if cell and not self.obstacles_in_cell(cell):
-                valid.append(cell)
+            x, y = coord
+            if 0 <= x < self.model.width and 0 <= y < self.model.height:
+                cell = self.model.grid[x, y]
+                if cell is not None and not self.obstacles_in_cell(cell):
+                    valid.append(cell)
         if not valid:
             return False
         chosen = self.random.choice(valid)

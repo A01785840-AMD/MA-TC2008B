@@ -25,7 +25,7 @@ def roomba_portrayal(agent):
         else:
             style.update(("color", "lightgray"), ("marker", "s"), ("size", 60), ("zorder", 1))
     elif isinstance(agent, Obstacle):
-        style.update(("color", "black"), ("marker", "X"), ("size", 80), ("zorder", 2))
+        style.update(("color", "#ffcc00"), ("marker", "X"), ("size", 100), ("zorder", 2))
     elif isinstance(agent, ChargingStation):
         style.update(("color", "green"), ("marker", "D"), ("size", 90), ("zorder", 0))
 
