@@ -48,11 +48,44 @@ model_params = {
 
 
 def post_process_space(ax):
-    ax.set_aspect("equal")
+    ax.figure.patch.set_facecolor("#0a0a14")
+    ax.set_facecolor("#0f0f1e")
+
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.grid(False)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    ax.margins(0.02)
+    ax.patch.set_edgecolor("#00ff88")
+    ax.patch.set_linewidth(0.6)
+    ax.patch.set_alpha(0.25)
 
 
 def post_process_lines(ax):
-    ax.legend(loc="center left", bbox_to_anchor=(1, 0.9))
+    legend = ax.legend(loc="center left", bbox_to_anchor=(1, 0.9))
+    if legend is not None:
+        legend.get_frame().set_facecolor("#111526")
+        legend.get_frame().set_edgecolor("#2a2a3a")
+        legend.get_frame().set_alpha(0.9)
+        for text in legend.get_texts():
+            text.set_color("#cfd3e6")
+
+    ax.figure.patch.set_facecolor("#0a0a14")
+    ax.set_facecolor("#0f0f1e")
+
+    ax.tick_params(colors="#cfd3e6")
+    ax.xaxis.label.set_color("#cfd3e6")
+    ax.yaxis.label.set_color("#cfd3e6")
+    ax.title.set_color("#e5e9f5")
+
+    ax.grid(True, color="#1e2230", alpha=0.6, linestyle="--", linewidth=0.6)
+    for spine in ax.spines.values():
+        spine.set_color("#2a2a3a")
+        spine.set_linewidth(0.6)
 
 
 # Build dynamic color mapping for plot (aggregate + first few agents)
