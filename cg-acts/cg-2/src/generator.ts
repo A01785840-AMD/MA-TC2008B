@@ -50,7 +50,7 @@ class OutputAPI {
         //         .join('\n')
         // }
         const halfWidth = dim.width;
-        const halfHeight = dim.height / 2;
+        const height = dim.height;
 
         const output = `
             # Created by me :)
@@ -59,15 +59,15 @@ class OutputAPI {
             
             o Cube
             
-            v ${-halfWidth} ${halfHeight} -1.0
-            v ${halfWidth} ${halfHeight} -1.0
-            v ${halfWidth} ${-halfHeight} -1.0
-            v ${-halfWidth} ${-halfHeight} -1.0
+            v ${-halfWidth} ${halfWidth} 0.0
+            v ${halfWidth} ${halfWidth} 0.0
+            v ${halfWidth} ${-halfWidth} 0.0
+            v ${-halfWidth} ${-halfWidth} 0.0
             
-            v ${-halfWidth} ${halfHeight} 1.0
-            v ${halfWidth} ${halfHeight} 1.0
-            v ${halfWidth} ${-halfHeight} 1.0
-            v ${-halfWidth} ${-halfHeight} 1.0
+            v ${-halfWidth} ${halfWidth} ${height}
+            v ${halfWidth} ${halfWidth} ${height}
+            v ${halfWidth} ${-halfWidth} ${height}
+            v ${-halfWidth} ${-halfWidth} ${height}
             
             # back face
             f 1 2 3
@@ -113,14 +113,14 @@ function setUpUI(api: OutputAPI) {
         });
 
     folderConfigObj
-        .add(scene.object, 'height', 1.0, 100.0, 0.5)
+        .add(scene.object, 'height', 1.0, 40.0, 0.5)
         .name('Object height')
         .onChange(() => {
             api.buildObject();
         });
 
     folderConfigObj
-        .add(scene.object, 'halfWidth', 0.5, 100.0, 0.5)
+        .add(scene.object, 'halfWidth', 0.5, 40.0, 0.5)
         .name('Object half width')
         .onChange(() => {
             api.buildObject();
@@ -138,11 +138,11 @@ function main() {
 
 
     cpOutput.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(output.textContent);
-        } catch (err) {
-            window.alert(`Failed to copy: ${err}`)
-        }
+        // try {
+        //     await navigator.clipboard.writeText(output.textContent);
+        // } catch (err) {
+        //     window.alert(`Failed to copy: ${err}`)
+        // }
 
         const content = (output.textContent ?? '').trim().split('            ').join('\n');
         const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
