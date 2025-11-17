@@ -25,18 +25,12 @@ function iota({start = 0, end = 10, n_torus = 0, exclusive = false}: args = {}):
     return Array.from({length: end - start + n_torus}, (_, i) => start + (i % (end - start)));
 }
 
-// function fold(arr: number[], n: number = 2): number[][] {
-//     const size = Math.ceil(arr.length / n);
-//     const result: number[][] = [];
-//
-//     for (let i = 0; i < arr.length; i += size - 1) {
-//         const to_add = arr.slice(i, i + size);
-//
-//         if (to_add.length === size) result.push(to_add);
-//     }
-//
-//     return result;
-// }
+function polarToCartesian(radius: number, theta: number) {
+    const x: number = radius * Math.cos(theta);
+    const y: number = radius * Math.sin(theta);
+
+    return {x: x, y: y};
+}
 
 type Vertex = { x: number, y: number, z: number };
 
@@ -57,18 +51,11 @@ class OutputAPI {
         lowerRadius: number = scene.object.lowerRadius
     ) {
 
+        const theta = 2 * Math.PI / faces;
+
         const verticeGroups: Vertex[][] = [
-            [
-                {x: -lowerRadius, y: lowerRadius, z: 0.0},
-                {x: lowerRadius, y: lowerRadius, z: 0.0},
-                {x: lowerRadius, y: -lowerRadius, z: 0.0},
-                {x: -lowerRadius, y: -lowerRadius, z: 0.0}
-            ], [
-                {x: -upperRadius, y: upperRadius, z: height},
-                {x: upperRadius, y: upperRadius, z: height},
-                {x: upperRadius, y: -upperRadius, z: height},
-                {x: -upperRadius, y: -upperRadius, z: height}
-            ]
+            iota({start: 1, end: faces}).map(i => ({...polarToCartesian(lowerRadius, theta * i), z: 0.0})),
+            iota({start: 1, end: faces}).map(i => ({...polarToCartesian(upperRadius, theta * i), z: height}))
         ];
 
         const verticeGroupsString: string[][] = verticeGroups.map(vertexGroup => (
@@ -88,24 +75,24 @@ class OutputAPI {
         switch (faces) {
             case 3:
                 top_bottom = (`
-                    f 1 2 3
+                    f 3 2 1
                     
                     f 4 5 6`
                 );
                 break;
             case 4:
                 top_bottom = (
-                    `f 7 6 5
-                    f 5 8 7
+                    `f 5 6 7
+                    f 7 8 5
 
-                    f 1 2 3
-                    f 3 4 1`
+                    f 3 2 1
+                    f 1 4 3`
                 );
                 break;
             default:
                 break;
         }
-
+        // Enabling
         this.objectBuilt = `
             # Created by me :)
             # Faces: ${faces}
@@ -117,8 +104,8 @@ class OutputAPI {
             ${
             iota({end: verticesPerGroup, exclusive: true})
                 .map(i => (
-                    `f ${indexes[0][i]} ${indexes[1][i]} ${indexes[1][i + 1]}
-                     f ${indexes[1][i + 1]} ${indexes[0][i + 1]} ${indexes[0][i]}`
+                    `f ${indexes[1][i + 1]} ${indexes[1][i]} ${indexes[0][i]} 
+                     f ${indexes[0][i]} ${indexes[0][i + 1]} ${indexes[1][i + 1]}`
                 )).join('\n\n')
         }
         
