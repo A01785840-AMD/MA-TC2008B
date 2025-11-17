@@ -10,6 +10,26 @@ const scene = {
     }
 }
 
+function iota(start: number, end: number, {n_torus = 0, exclusive = false} = {}): number[] {
+    if (start > end) throw new Error(`${start} > ${end}`);
+    if (!exclusive) end++;
+
+    return Array.from({length: end - start + n_torus}, (_, i) => start + (i % (end - start)));
+}
+
+function fold(arr: number[], n: number = 2): number[][] {
+    const size = Math.ceil(arr.length / n);
+    const result: number[][] = [];
+
+    for (let i = 0; i < arr.length; i += size - 1) {
+        const to_add = arr.slice(i, i + size);
+
+        if (to_add.length === size) result.push(to_add);
+    }
+
+    return result;
+}
+
 class OutputAPI {
     constructor(output: HTMLElement) {
         this.output = output;
@@ -40,13 +60,16 @@ class OutputAPI {
             ]
         ];
 
+        const totalVertices = verticeGroups[0].length * verticeGroups.length;
+        const verticesPerGroup = verticeGroups[0].length;
+        const indexes = [iota(1, totalVertices / 2, {n_torus: 1}), iota(totalVertices / 2 + 1, totalVertices, {n_torus: 1})];
+
         this.objectBuilt = `
             # Created by me :)
             # Faces: ${faces}
             # Dimensions: (x1 = ${lowerRadius}, x2 = ${upperRadius}, y = ${height})
             
-            o Cube
-            
+            o Figure
             ${
             verticeGroups
                 .map((group: number[][]) =>
@@ -56,29 +79,18 @@ class OutputAPI {
                 ).join('\n\n')
         }
             
-            # back face
-            f 1 2 3
-            f 3 4 1
+            ${
+            iota(0, verticesPerGroup, {exclusive: true})
+                .map((i) => (
+                    `f ${indexes[0][i + 0]} ${indexes[1][i + 0]} ${indexes[1][i + 1]}
+                     f ${indexes[1][i + 1]} ${indexes[0][i + 1]} ${indexes[0][i + 0]}`
+                )).join('\n\n')
+        }
+        
+            ${fold(indexes[1]).map(grp => `f ${grp.reverse().join(' ')}`).join("\n")}
             
-            # front face
-            f 7 6 5
-            f 5 8 7
-            
-            # left face
-            f 8 5 1
-            f 1 4 8
-            
-            # right face
-            f 2 6 7
-            f 7 3 2
-            
-            #lower face
-            f 7 8 4
-            f 4 3 7
-            
-            # upper face
-            f 6 2 1
-            f 1 5 6
+            ${fold(indexes[0]).map(grp => `f ${grp.join(' ')}`).join("\n")}
+             
         `;
 
         this.objectBuilt = this.objectBuilt.trim().split('\n').map(obj => obj.trim()).join('\n');
