@@ -6,11 +6,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <h1>OBJ Gen</h1>
     <div id="output-container">
-        <button id="cp-output">[--]</button>
+        <button id="cp-output">Download</button>
         <div id="output"></div>
     </div>
 <!--    <canvas></canvas>-->
   </div>
-`
+`;
 
 main();
