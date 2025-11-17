@@ -11,10 +11,13 @@ const scene = {
 }
 
 class OutputAPI {
-    private output: HTMLElement;
-
     constructor(output: HTMLElement) {
         this.output = output;
+        this.objectBuilt = "";
+    }
+
+    get content(): string {
+        return this.objectBuilt;
     }
 
     buildObject(
@@ -23,22 +26,35 @@ class OutputAPI {
         upperRadius: number = scene.object.upperRadius,
         lowerRadius: number = scene.object.lowerRadius
     ) {
-        const output = `
+        const verticeGroups: number[][][] = [
+            [
+                [-lowerRadius, lowerRadius, 0.0],
+                [lowerRadius, lowerRadius, 0.0],
+                [lowerRadius, -lowerRadius, 0.0],
+                [-lowerRadius, -lowerRadius, 0.0]
+            ], [
+                [-upperRadius, upperRadius, height],
+                [upperRadius, upperRadius, height],
+                [upperRadius, -upperRadius, height],
+                [-upperRadius, -upperRadius, height]
+            ]
+        ];
+
+        this.objectBuilt = `
             # Created by me :)
             # Faces: ${faces}
             # Dimensions: (x1 = ${lowerRadius}, x2 = ${upperRadius}, y = ${height})
             
             o Cube
             
-            v ${-lowerRadius} ${lowerRadius} 0.0
-            v ${lowerRadius} ${lowerRadius} 0.0
-            v ${lowerRadius} ${-lowerRadius} 0.0
-            v ${-lowerRadius} ${-lowerRadius} 0.0
-            
-            v ${-upperRadius} ${upperRadius} ${height}
-            v ${upperRadius} ${upperRadius} ${height}
-            v ${upperRadius} ${-upperRadius} ${height}
-            v ${-upperRadius} ${-upperRadius} ${height}
+            ${
+            verticeGroups
+                .map((group: number[][]) =>
+                    (group.map((vertice: number[]) =>
+                        (`v ${vertice[0]} ${vertice[1]} ${vertice[2]}`)
+                    ).join('\n'))
+                ).join('\n\n')
+        }
             
             # back face
             f 1 2 3
@@ -65,9 +81,13 @@ class OutputAPI {
             f 1 5 6
         `;
 
-        this.output.innerText = `${output}`;
+        this.objectBuilt = this.objectBuilt.trim().split('\n').map(obj => obj.trim()).join('\n');
+
+        this.output.innerText = `${this.objectBuilt}`;
     }
 
+    private output: HTMLElement;
+    private objectBuilt: string;
 }
 
 
@@ -114,7 +134,7 @@ function main() {
     const outputApi = new OutputAPI(output);
 
     const downloadFile = handleFileDownload(() => {
-        const content = (output.textContent ?? '').trim().split('            ').join('\n');
+        const content = outputApi.content
         return new Blob([content], {type: 'text/plain;charset=utf-8'});
     });
 
