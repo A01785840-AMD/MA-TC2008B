@@ -3,7 +3,7 @@ import GUI from "lil-gui";
 
 const scene = {
     object: {
-        facesNum: 4,
+        facesNum: 6,
         height: 1,
         upperRadius: 1,
         lowerRadius: 1,
@@ -89,6 +89,15 @@ class OutputAPI {
                 );
                 break;
             default:
+                const index = totalVertices + 1;
+                verticeGroupsString[1].push(`v 0 0 0`);
+                verticeGroupsString[1].push(`v 0 0 ${height}`);
+
+                iota({start: 1, end: verticesPerGroup}).forEach(i => {
+                    top_bottom += `f ${i} ${index} ${(i % verticesPerGroup + 1)}\n`;
+                    top_bottom += `f ${(totalVertices / 2 + i % verticesPerGroup + 1)} ${index + 1} ${totalVertices / 2 + i}\n`;
+                });
+
                 break;
         }
         this.objectBuilt = `
