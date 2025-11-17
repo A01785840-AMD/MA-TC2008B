@@ -92,7 +92,6 @@ class OutputAPI {
             default:
                 break;
         }
-        // Enabling
         this.objectBuilt = `
             # Created by me :)
             # Faces: ${faces}
