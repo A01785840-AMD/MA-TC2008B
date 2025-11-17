@@ -25,18 +25,18 @@ function iota({start = 0, end = 10, n_torus = 0, exclusive = false}: args = {}):
     return Array.from({length: end - start + n_torus}, (_, i) => start + (i % (end - start)));
 }
 
-function fold(arr: number[], n: number = 2): number[][] {
-    const size = Math.ceil(arr.length / n);
-    const result: number[][] = [];
-
-    for (let i = 0; i < arr.length; i += size - 1) {
-        const to_add = arr.slice(i, i + size);
-
-        if (to_add.length === size) result.push(to_add);
-    }
-
-    return result;
-}
+// function fold(arr: number[], n: number = 2): number[][] {
+//     const size = Math.ceil(arr.length / n);
+//     const result: number[][] = [];
+//
+//     for (let i = 0; i < arr.length; i += size - 1) {
+//         const to_add = arr.slice(i, i + size);
+//
+//         if (to_add.length === size) result.push(to_add);
+//     }
+//
+//     return result;
+// }
 
 type Vertex = { x: number, y: number, z: number };
 
@@ -71,11 +71,11 @@ class OutputAPI {
             ]
         ];
 
-        verticeGroups.map(vertexGroup => {
+        const verticeGroupsString: string[][] = verticeGroups.map(vertexGroup => (
             vertexGroup.map(vertex => {
                 return `v ${vertex.x} ${vertex.y} ${vertex.z}`;
-            });
-        });
+            })
+        ));
 
         const totalVertices = verticeGroups[0].length * verticeGroups.length;
         const verticesPerGroup = verticeGroups[0].length;
@@ -84,13 +84,35 @@ class OutputAPI {
             iota({start: totalVertices / 2 + 1, end: totalVertices, n_torus: 1})
         ];
 
+        let top_bottom = '';
+        switch (faces) {
+            case 3:
+                top_bottom = (`
+                    f 1 2 3
+                    
+                    f 4 5 6`
+                );
+                break;
+            case 4:
+                top_bottom = (
+                    `f 7 6 5
+                    f 5 8 7
+
+                    f 1 2 3
+                    f 3 4 1`
+                );
+                break;
+            default:
+                break;
+        }
+
         this.objectBuilt = `
             # Created by me :)
             # Faces: ${faces}
             # Dimensions: (x1 = ${lowerRadius}, x2 = ${upperRadius}, y = ${height})
             
             o Figure
-            ${verticeGroups.map(grp => grp.join('\n')).join('\n\n')}
+            ${verticeGroupsString.map(grp => grp.join('\n')).join('\n\n')}
             
             ${
             iota({end: verticesPerGroup, exclusive: true})
@@ -100,10 +122,8 @@ class OutputAPI {
                 )).join('\n\n')
         }
         
-            ${fold(indexes[1]).map(grp => `f ${grp.reverse().join(' ')}`).join("\n")}
-            
-            ${fold(indexes[0]).map(grp => `f ${grp.join(' ')}`).join("\n")}
-             
+            ${top_bottom}
+
         `;
 
         this.objectBuilt = this.objectBuilt.trim().split('\n').map(obj => obj.trim()).join('\n');
@@ -122,7 +142,7 @@ function setUpUI(onChange: () => void) {
     folderConfigObj.onChange(() => onChange());
 
     folderConfigObj
-        .add(scene.object, 'facesNum', 4, 36, 1).name(`Number of Faces`);
+        .add(scene.object, 'facesNum', 3, 36, 1).name(`Number of Faces`);
 
     folderConfigObj
         .add(scene.object, 'height', 1.0, 40.0, 0.5).name('Height');
