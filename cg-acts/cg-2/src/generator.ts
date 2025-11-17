@@ -21,6 +21,10 @@ function iota({start = 0, end = 10, n_torus = 0, exclusive = false}: args = {}):
     if (start > end) throw new Error(`Start bigger than end: ${start} > ${end}`);
     if (n_torus < 0) throw new Error(`N torus cant be negative '${n_torus}'`);
     if (!exclusive) end++;
+    //
+    // if (n_torus === 0) {
+    //     return Array.from({length: end - start}, (_, i) => start + i);
+    // }
 
     return Array.from({length: end - start + n_torus}, (_, i) => start + (i % (end - start)));
 }
@@ -66,8 +70,8 @@ class OutputAPI {
         const verticesPerGroup = verticeGroups[0].length;
         const totalVertices = verticesPerGroup * verticeGroups.length;
         const indexes = [
-            iota({start: 1, end: totalVertices / 2, n_torus: 1}),
-            iota({start: totalVertices / 2 + 1, end: totalVertices, n_torus: 1})
+            iota({start: 1, end: verticesPerGroup, n_torus: 1}),
+            iota({start: verticesPerGroup + 1, end: totalVertices, n_torus: 1})
         ];
 
         let top_bottom = '';
@@ -94,8 +98,10 @@ class OutputAPI {
                 verticeGroupsString[1].push(`v 0 0 ${height}`);
 
                 iota({start: 1, end: verticesPerGroup}).forEach(i => {
-                    top_bottom += `f ${i} ${index} ${(i % verticesPerGroup + 1)}\n`;
-                    top_bottom += `f ${(totalVertices / 2 + i % verticesPerGroup + 1)} ${index + 1} ${totalVertices / 2 + i}\n`;
+                    const linkIndex = i % verticesPerGroup + 1;
+
+                    top_bottom += `f ${i} ${index} ${linkIndex}\n`;
+                    top_bottom += `f ${verticesPerGroup + linkIndex} ${index + 1} ${verticesPerGroup + i}\n`;
                 });
 
                 break;
