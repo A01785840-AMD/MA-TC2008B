@@ -25,7 +25,7 @@ function iota({start = 0, end = 10, n_torus = 0, exclusive = false}: args = {}):
     return Array.from({length: end - start + n_torus}, (_, i) => start + (i % (end - start)));
 }
 
-function polarToCartesian(radius: number, theta: number) {
+function polarToCartesian(radius: number, theta: number): { x: number, y: number } {
     const x: number = radius * Math.cos(theta);
     const y: number = radius * Math.sin(theta);
 
@@ -50,7 +50,6 @@ class OutputAPI {
         upperRadius: number = scene.object.upperRadius,
         lowerRadius: number = scene.object.lowerRadius
     ) {
-
         const theta = 2 * Math.PI / faces;
 
         const verticeGroups: Vertex[][] = [
@@ -64,8 +63,8 @@ class OutputAPI {
             })
         ));
 
-        const totalVertices = verticeGroups[0].length * verticeGroups.length;
         const verticesPerGroup = verticeGroups[0].length;
+        const totalVertices = verticesPerGroup * verticeGroups.length;
         const indexes = [
             iota({start: 1, end: totalVertices / 2, n_torus: 1}),
             iota({start: totalVertices / 2 + 1, end: totalVertices, n_torus: 1})
