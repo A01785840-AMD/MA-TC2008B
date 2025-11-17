@@ -10,8 +10,16 @@ const scene = {
     }
 }
 
-function iota(start: number, end: number, {n_torus = 0, exclusive = false} = {}): number[] {
-    if (start > end) throw new Error(`${start} > ${end}`);
+interface args {
+    start?: number;
+    end?: number;
+    n_torus?: number;
+    exclusive?: boolean;
+}
+
+function iota({start = 0, end = 10, n_torus = 0, exclusive = false}: args = {}): number[] {
+    if (start > end) throw new Error(`Start bigger than end: ${start} > ${end}`);
+    if (n_torus < 0) throw new Error(`N torus cant be negative '${n_torus}'`);
     if (!exclusive) end++;
 
     return Array.from({length: end - start + n_torus}, (_, i) => start + (i % (end - start)));
@@ -30,28 +38,7 @@ function fold(arr: number[], n: number = 2): number[][] {
     return result;
 }
 
-interface vec3d {
-    x?: number;
-    y?: number;
-    z?: number;
-}
-
-class Vertex {
-    x: number;
-    y: number;
-    z: number;
-
-    constructor({x = 0, y = 0, z = 0}: vec3d = {}) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    to_string(): string {
-        return `v ${this.x} ${this.y} ${this.z}`;
-
-    }
-}
+type Vertex = { x: number, y: number, z: number };
 
 class OutputAPI {
     constructor(output: HTMLElement) {
@@ -70,25 +57,31 @@ class OutputAPI {
         lowerRadius: number = scene.object.lowerRadius
     ) {
 
-        const verticeGroups: string[][] = [
+        const verticeGroups: Vertex[][] = [
             [
-                new Vertex({x: -lowerRadius, y: lowerRadius, z: 0.0}).to_string(),
-                new Vertex({x: lowerRadius, y: lowerRadius, z: 0.0}).to_string(),
-                new Vertex({x: lowerRadius, y: -lowerRadius, z: 0.0}).to_string(),
-                new Vertex({x: -lowerRadius, y: -lowerRadius, z: 0.0}).to_string()
+                {x: -lowerRadius, y: lowerRadius, z: 0.0},
+                {x: lowerRadius, y: lowerRadius, z: 0.0},
+                {x: lowerRadius, y: -lowerRadius, z: 0.0},
+                {x: -lowerRadius, y: -lowerRadius, z: 0.0}
             ], [
-                new Vertex({x: -upperRadius, y: upperRadius, z: height}).to_string(),
-                new Vertex({x: upperRadius, y: upperRadius, z: height}).to_string(),
-                new Vertex({x: upperRadius, y: -upperRadius, z: height}).to_string(),
-                new Vertex({x: -upperRadius, y: -upperRadius, z: height}).to_string()
+                {x: -upperRadius, y: upperRadius, z: height},
+                {x: upperRadius, y: upperRadius, z: height},
+                {x: upperRadius, y: -upperRadius, z: height},
+                {x: -upperRadius, y: -upperRadius, z: height}
             ]
         ];
+
+        verticeGroups.map(vertexGroup => {
+            vertexGroup.map(vertex => {
+                return `v ${vertex.x} ${vertex.y} ${vertex.z}`;
+            });
+        });
 
         const totalVertices = verticeGroups[0].length * verticeGroups.length;
         const verticesPerGroup = verticeGroups[0].length;
         const indexes = [
-            iota(1, totalVertices / 2, {n_torus: 1}),
-            iota(totalVertices / 2 + 1, totalVertices, {n_torus: 1})
+            iota({start: 1, end: totalVertices / 2, n_torus: 1}),
+            iota({start: totalVertices / 2 + 1, end: totalVertices, n_torus: 1})
         ];
 
         this.objectBuilt = `
@@ -100,8 +93,8 @@ class OutputAPI {
             ${verticeGroups.map(grp => grp.join('\n')).join('\n\n')}
             
             ${
-            iota(0, verticesPerGroup, {exclusive: true})
-                .map((i) => (
+            iota({end: verticesPerGroup, exclusive: true})
+                .map(i => (
                     `f ${indexes[0][i]} ${indexes[1][i]} ${indexes[1][i + 1]}
                      f ${indexes[1][i + 1]} ${indexes[0][i + 1]} ${indexes[0][i]}`
                 )).join('\n\n')
@@ -114,7 +107,6 @@ class OutputAPI {
         `;
 
         this.objectBuilt = this.objectBuilt.trim().split('\n').map(obj => obj.trim()).join('\n');
-
         this.output.innerText = `${this.objectBuilt}`;
     }
 
