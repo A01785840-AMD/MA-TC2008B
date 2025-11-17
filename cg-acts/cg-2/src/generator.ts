@@ -30,6 +30,29 @@ function fold(arr: number[], n: number = 2): number[][] {
     return result;
 }
 
+interface vec3d {
+    x?: number;
+    y?: number;
+    z?: number;
+}
+
+class Vertex {
+    x: number;
+    y: number;
+    z: number;
+
+    constructor({x = 0, y = 0, z = 0}: vec3d = {}) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    to_string(): string {
+        return `v ${this.x} ${this.y} ${this.z}`;
+
+    }
+}
+
 class OutputAPI {
     constructor(output: HTMLElement) {
         this.output = output;
@@ -46,23 +69,27 @@ class OutputAPI {
         upperRadius: number = scene.object.upperRadius,
         lowerRadius: number = scene.object.lowerRadius
     ) {
-        const verticeGroups: number[][][] = [
+
+        const verticeGroups: string[][] = [
             [
-                [-lowerRadius, lowerRadius, 0.0],
-                [lowerRadius, lowerRadius, 0.0],
-                [lowerRadius, -lowerRadius, 0.0],
-                [-lowerRadius, -lowerRadius, 0.0]
+                new Vertex({x: -lowerRadius, y: lowerRadius, z: 0.0}).to_string(),
+                new Vertex({x: lowerRadius, y: lowerRadius, z: 0.0}).to_string(),
+                new Vertex({x: lowerRadius, y: -lowerRadius, z: 0.0}).to_string(),
+                new Vertex({x: -lowerRadius, y: -lowerRadius, z: 0.0}).to_string()
             ], [
-                [-upperRadius, upperRadius, height],
-                [upperRadius, upperRadius, height],
-                [upperRadius, -upperRadius, height],
-                [-upperRadius, -upperRadius, height]
+                new Vertex({x: -upperRadius, y: upperRadius, z: height}).to_string(),
+                new Vertex({x: upperRadius, y: upperRadius, z: height}).to_string(),
+                new Vertex({x: upperRadius, y: -upperRadius, z: height}).to_string(),
+                new Vertex({x: -upperRadius, y: -upperRadius, z: height}).to_string()
             ]
         ];
 
         const totalVertices = verticeGroups[0].length * verticeGroups.length;
         const verticesPerGroup = verticeGroups[0].length;
-        const indexes = [iota(1, totalVertices / 2, {n_torus: 1}), iota(totalVertices / 2 + 1, totalVertices, {n_torus: 1})];
+        const indexes = [
+            iota(1, totalVertices / 2, {n_torus: 1}),
+            iota(totalVertices / 2 + 1, totalVertices, {n_torus: 1})
+        ];
 
         this.objectBuilt = `
             # Created by me :)
@@ -70,20 +97,13 @@ class OutputAPI {
             # Dimensions: (x1 = ${lowerRadius}, x2 = ${upperRadius}, y = ${height})
             
             o Figure
-            ${
-            verticeGroups
-                .map((group: number[][]) =>
-                    (group.map((vertice: number[]) =>
-                        (`v ${vertice[0]} ${vertice[1]} ${vertice[2]}`)
-                    ).join('\n'))
-                ).join('\n\n')
-        }
+            ${verticeGroups.map(grp => grp.join('\n')).join('\n\n')}
             
             ${
             iota(0, verticesPerGroup, {exclusive: true})
                 .map((i) => (
-                    `f ${indexes[0][i + 0]} ${indexes[1][i + 0]} ${indexes[1][i + 1]}
-                     f ${indexes[1][i + 1]} ${indexes[0][i + 1]} ${indexes[0][i + 0]}`
+                    `f ${indexes[0][i]} ${indexes[1][i]} ${indexes[1][i + 1]}
+                     f ${indexes[1][i + 1]} ${indexes[0][i + 1]} ${indexes[0][i]}`
                 )).join('\n\n')
         }
         
