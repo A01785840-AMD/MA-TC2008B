@@ -5,7 +5,8 @@ const scene = {
     object: {
         facesNum: 4,
         height: 1,
-        halfWidth: 0.5,
+        upperRadius: 1,
+        lowerRadius: 1,
     }
 }
 
@@ -36,10 +37,9 @@ class OutputAPI {
 
     buildObject(
         faces: number = scene.object.facesNum,
-        dim: { width: number, height: number } = {
-            width: scene.object.halfWidth,
-            height: scene.object.height
-        }
+        height: number = scene.object.height,
+        upperRadius: number = scene.object.upperRadius,
+        lowerRadius: number = scene.object.lowerRadius
     ) {
         // ${
         //     Array(faces)
@@ -49,25 +49,23 @@ class OutputAPI {
         //         )
         //         .join('\n')
         // }
-        const halfWidth = dim.width;
-        const height = dim.height;
 
         const output = `
             # Created by me :)
             # Faces: ${faces}
-            # Dimensions: (${dim.width}, ${dim.height})
+            # Dimensions: (x1 = ${lowerRadius}, x2 = ${upperRadius}, y = ${height})
             
             o Cube
             
-            v ${-halfWidth} ${halfWidth} 0.0
-            v ${halfWidth} ${halfWidth} 0.0
-            v ${halfWidth} ${-halfWidth} 0.0
-            v ${-halfWidth} ${-halfWidth} 0.0
+            v ${-lowerRadius} ${lowerRadius} 0.0
+            v ${lowerRadius} ${lowerRadius} 0.0
+            v ${lowerRadius} ${-lowerRadius} 0.0
+            v ${-lowerRadius} ${-lowerRadius} 0.0
             
-            v ${-halfWidth} ${halfWidth} ${height}
-            v ${halfWidth} ${halfWidth} ${height}
-            v ${halfWidth} ${-halfWidth} ${height}
-            v ${-halfWidth} ${-halfWidth} ${height}
+            v ${-upperRadius} ${upperRadius} ${height}
+            v ${upperRadius} ${upperRadius} ${height}
+            v ${upperRadius} ${-upperRadius} ${height}
+            v ${-upperRadius} ${-upperRadius} ${height}
             
             # back face
             f 1 2 3
@@ -114,14 +112,22 @@ function setUpUI(api: OutputAPI) {
 
     folderConfigObj
         .add(scene.object, 'height', 1.0, 40.0, 0.5)
-        .name('Object height')
+        .name('Height')
+        .onChange(() => {
+            api.buildObject();
+        });
+
+
+    folderConfigObj
+        .add(scene.object, 'upperRadius', 0.5, 40.0, 0.5)
+        .name('Upper radius')
         .onChange(() => {
             api.buildObject();
         });
 
     folderConfigObj
-        .add(scene.object, 'halfWidth', 0.5, 40.0, 0.5)
-        .name('Object half width')
+        .add(scene.object, 'lowerRadius', 0.5, 40.0, 0.5)
+        .name('Lower radius')
         .onChange(() => {
             api.buildObject();
         });
@@ -145,7 +151,7 @@ function main() {
         // }
 
         const content = (output.textContent ?? '').trim().split('            ').join('\n');
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
