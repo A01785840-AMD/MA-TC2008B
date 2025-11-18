@@ -1,14 +1,13 @@
 import GUI from "lil-gui";
-import * as twgl from 'twgl-base.js';
-
 import type {ProgramInfo} from "twgl-base.js";
+import * as twgl from 'twgl-base.js';
 import type {Vertex} from "./libs/utils.ts";
+import {handleFileDownload, iota, makeGUIDraggable, polarToCartesian} from "./libs/utils.ts";
 
 import vsGLSL from './shaders/vertex.glsl?raw';
 import fsGLSL from './shaders/fragment.glsl?raw';
 
 import {M4} from './libs/3d-lib.ts';
-import {handleFileDownload, iota, polarToCartesian, makeGUIDraggable} from "./libs/utils.ts";
 
 
 class App {
@@ -29,7 +28,9 @@ class App {
             totalVertices: 0,
             verticesPerGroup: 0,
             position: [],
-            indices: []
+            indices: [],
+            rotation: {x: 0, y: 0, z: 0},
+            scale: {min: 0.1, n: 1, max: 5}
         };
 
         cpOutput.addEventListener('click', handleFileDownload(() => {
@@ -55,19 +56,26 @@ class App {
 
         const bufferInfo = twgl.createBufferInfoFromArrays(this.gl, this.getContentAsLinesArrays());
 
-        const fov = 60 * Math.PI / 180;
-        const aspect = window.innerWidth / window.innerHeight; // check
-        const projection = M4.perspective(fov, aspect, 0.1, 100);
-        const eye = [Math.cos(time) * 5, 2, Math.sin(time) * 5];
-        const target = [0, 0, 0];
+        const eye = [5, 5, 5];
+
         const up = [0, 1, 0];
+        const target = [0, 0, 0];
         const camera = M4.lookAt(eye, target, up);
-        const view = M4.inverse(camera);
+
+        const rotationX = M4.rotationX(this.sceneObject.rotation.x);
+        const rotationY = M4.rotationY(this.sceneObject.rotation.y);
+        const rotationZ = M4.rotationZ(this.sceneObject.rotation.z);
+
+        const rotation = M4.multiply(M4.multiply(rotationX, rotationY), rotationZ);
+        const view = M4.multiply(M4.inverse(camera), rotation);
+
+        const fov = 60 * Math.PI / 180;
+        const aspect = window.innerWidth / window.innerHeight;
+
+        const projection = M4.perspective(fov, aspect, 0.1, 100);
         const viewProjection = M4.multiply(projection, view);
 
-        // Scale the cube
-        const scale = 1; // Change this value to scale the cube (0.5 = half size, 2 = double size)
-        const world = M4.scaling([scale, scale, scale]);
+        const world = M4.scaling([this.sceneObject.scale.n, this.sceneObject.scale.n, this.sceneObject.scale.n]);
         const worldViewProjection = M4.multiply(viewProjection, world);
 
         twgl.setBuffersAndAttributes(this.gl, this.programInfo, bufferInfo);
@@ -81,6 +89,7 @@ class App {
     #setUp() {
         this.#buildObject();
         this.#setUpUI();
+        this.#setUpListener();
     }
 
     getContentAsArrays() {
@@ -232,8 +241,22 @@ class App {
         gui.add(this.sceneObject, 'height', 1.0, 2.0, 0.005).name('Height');
         gui.add(this.sceneObject, 'upperRadius', 0.5, 2.0, 0.005).name('Upper radius');
         gui.add(this.sceneObject, 'lowerRadius', 0.5, 2.0, 0.005).name('Lower radius');
+        // gui.add(this.sceneObject, 'scale', 0.5, 2.0, 0.005).name('Scaling');
+
+        gui.add(this.sceneObject.rotation, 'x', 0, 2 * Math.PI, Math.PI / 100).name('Rotation x');
+        gui.add(this.sceneObject.rotation, 'y', 0, 2 * Math.PI, Math.PI / 100).name('Rotation y');
+        gui.add(this.sceneObject.rotation, 'z', 0, 2 * Math.PI, Math.PI / 100).name('Rotation z');
 
         makeGUIDraggable(gui);
+    }
+
+    #setUpListener() {
+        document.addEventListener('wheel', (e: WheelEvent) => {
+            const percent = (e.deltaY / window.innerHeight) * 100;
+            const newValue = this.sceneObject.scale.n + (this.sceneObject.scale.n * percent * 0.01)
+
+            this.sceneObject.scale.n = Math.min(Math.max(newValue, this.sceneObject.scale.min), this.sceneObject.scale.max);
+        });
     }
 
     private readonly gl: WebGL2RenderingContext;
@@ -246,6 +269,7 @@ class App {
         vertexGroups: string[][]; indexes: number[][];
         totalVertices: number; verticesPerGroup: number;
         position: number[], indices: number[];
+        rotation: Vertex; scale: {min: number, n: number, max:number};
     };
 }
 
