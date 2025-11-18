@@ -1,12 +1,36 @@
 import GUI from "lil-gui";
+import * as twgl from 'twgl-base.js';
+
+import type {ProgramInfo} from "twgl-base.js";
 import type {Vertex} from "./libs/utils.ts";
+
+import {M4} from './libs/3d-lib.ts';
 import {handleFileDownload, iota, polarToCartesian, makeGUIDraggable} from "./libs/utils.ts";
 
 
+const vsGLSL = `#version 300 es
+in vec4 position;
+uniform mat4 u_matrix;
+void main() {
+  gl_Position = u_matrix * position;
+}`;
+
+const fsGLSL = `#version 300 es
+precision highp float;
+out vec4 outColor;
+void main() {
+  outColor = vec4(0.267, 0.290, 0.953, 1);
+}`;
+
+
 class App {
-    constructor(output: HTMLElement, cpOutput: HTMLElement) {
+    constructor(gl: WebGL2RenderingContext, output: HTMLElement, cpOutput: HTMLElement) {
+        this.gl = gl;
         this.output = output;
+
         this.buffer = [];
+        this.programInfo = twgl.createProgramInfo(gl, [vsGLSL, fsGLSL]);
+
         this.sceneObject = {
             faces: 6,
             height: 1,
@@ -26,6 +50,47 @@ class App {
     }
 
     run() {
+        this.#setUp();
+
+        requestAnimationFrame(this.#render.bind(this));
+    }
+
+    #render(time: DOMHighResTimeStamp) {
+        twgl.resizeCanvasToDisplaySize(this.gl.canvas as HTMLCanvasElement);
+        this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.gl.useProgram(this.programInfo.program);
+
+        time = time * 0.0001;
+
+        const bufferInfo = twgl.createBufferInfoFromArrays(this.gl, this.getContentAsLinesArrays());
+
+        const fov = 60 * Math.PI / 180;
+        const aspect = window.innerWidth / window.innerHeight; // check
+        const projection = M4.perspective(fov, aspect, 0.1, 100);
+        const eye = [Math.cos(time) * 5, 2, Math.sin(time) * 5];
+        const target = [0, 0, 0];
+        const up = [0, 1, 0];
+        const camera = M4.lookAt(eye, target, up);
+        const view = M4.inverse(camera);
+        const viewProjection = M4.multiply(projection, view);
+
+        // Scale the cube
+        const scale = 1; // Change this value to scale the cube (0.5 = half size, 2 = double size)
+        const world = M4.scaling([scale, scale, scale]);
+        const worldViewProjection = M4.multiply(viewProjection, world);
+
+        twgl.setBuffersAndAttributes(this.gl, this.programInfo, bufferInfo);
+        twgl.setUniforms(this.programInfo, {u_matrix: worldViewProjection, time: time});
+        twgl.drawBufferInfo(this.gl, bufferInfo, this.gl.LINES);
+
+
+        requestAnimationFrame(this.#render.bind(this));
+    }
+
+    #setUp() {
         this.#buildObject();
         this.#setUpUI();
     }
@@ -183,8 +248,10 @@ class App {
         makeGUIDraggable(gui);
     }
 
+    private readonly gl: WebGL2RenderingContext;
     private readonly output: HTMLElement;
     private readonly buffer: string[];
+    private readonly programInfo: ProgramInfo;
     private readonly sceneObject: {
         faces: number; height: number;
         upperRadius: number; lowerRadius: number;
