@@ -184,9 +184,9 @@ class App {
 
         folderConfigObj.onChange(this.#buildObject.bind(this));
         folderConfigObj.add(this.sceneObject, 'faces', 3, 36, 1).name(`Number of Faces`);
-        folderConfigObj.add(this.sceneObject, 'height', 1.0, 20.0, 0.5).name('Height');
-        folderConfigObj.add(this.sceneObject, 'upperRadius', 0.5, 10.0, 0.5).name('Upper radius');
-        folderConfigObj.add(this.sceneObject, 'lowerRadius', 0.5, 10.0, 0.5).name('Lower radius');
+        folderConfigObj.add(this.sceneObject, 'height', 1.0, 2.0, 0.005).name('Height');
+        folderConfigObj.add(this.sceneObject, 'upperRadius', 0.5, 2.0, 0.005).name('Upper radius');
+        folderConfigObj.add(this.sceneObject, 'lowerRadius', 0.5, 2.0, 0.005).name('Lower radius');
 
         folderConfigObj.open();
     }

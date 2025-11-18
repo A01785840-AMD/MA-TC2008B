@@ -40,8 +40,6 @@ function main() {
     const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
     const programInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
-    const bufferInfo = twgl.createBufferInfoFromArrays(gl, app.getContentAsLinesArrays());
-
     function render(time: DOMHighResTimeStamp) {
         twgl.resizeCanvasToDisplaySize(canvas);
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -50,7 +48,9 @@ function main() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.useProgram(programInfo.program);
 
-        time = time * 0.0001
+        time = time * 0.0001;
+
+        const bufferInfo = twgl.createBufferInfoFromArrays(gl, app.getContentAsLinesArrays());
 
         const fov = 60 * Math.PI / 180;
         const aspect = canvas.clientWidth / canvas.clientHeight;
