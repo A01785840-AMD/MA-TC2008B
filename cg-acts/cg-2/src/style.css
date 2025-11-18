@@ -8,10 +8,11 @@
     --ff: system-ui, Avenir, Helvetica, Arial, sans-serif;
     --ff2: system-ui, Avenir, Helvetica, Arial, sans-serif;
 
-    --h1: 800 3.5rem/1.2em var(--ff2);
+    --h1: 800 3.2rem/1.2em var(--ff2);
     --h2: bold 1.5rem/1.4em var(--ff2);
     --p: 1rem/1.4em var(--ff);
     --p2: 0.875rem/1.4em var(--ff);
+    --a: 500 1rem/1.4 var(--ff);
 
     --spacing-xxs: 0.25rem;
     --spacing-xs: 0.5rem;
@@ -27,7 +28,7 @@
 
     --color-secondary-light: hsl(238, 100%, 75%);
     --color-secondary: hsl(238, 88%, 61%);
-    --color-secondary-dark: hsl(238, 92%, 56%);
+    --color-secondary-dark: hsl(237, 56%, 45%);
 
     --color-black-light: hsl(0, 0%, 20%);
     --color-black: hsl(0, 0%, 10%);
@@ -41,19 +42,16 @@
     --color-white: hsl(0, 0%, 95%);
     --color-white-dark: hsl(0, 0%, 90%);
 
+    --color-bg-primary: hsl(233, 10%, 17%);
+    --color-bg-secondary: hsl(240, 4%, 19%);
+    --color-bg-secondary-light: hsl(225, 3%, 24%);
 
     --scroll-bar-width: 0.625em;
     --scroll-bar-height: 0.625em;
 }
 
 :root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
-
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -71,7 +69,7 @@
 
     ::-webkit-scrollbar-thumb {
         background-color: var(--color-secondary);
-        /*border-radius: 20px;*/
+        border-radius: var(--spacing-m);
         max-height: 3.125em;
         height: 3.125em;
     }
@@ -91,6 +89,10 @@
 }
 
 body {
+    font: var(--p);
+    color: rgba(255, 255, 255, 0.87);
+    background-color: var(--color-bg-primary);
+
     width: 100vw;
     height: 100vh;
     display: flex;
@@ -105,48 +107,50 @@ body {
 }
 
 h1 {
-    font-size: 3.2em;
-    line-height: 1.1;
+    font: var(--h1);
 }
 
 #container {
-    background-color: #303133;
-    border-radius: 20px;
-    padding: 1.5em;
+    border-radius: var(--spacing-m);
+    padding: var(--spacing-m) var(--spacing-l) var(--spacing-xxs);
     margin: 0.5em;
     position: relative;
 }
 
 a {
-    font-weight: 500;
+    font: var(--a);
     color: var(--color-secondary-light);
-    text-decoration: inherit;
-}
+    text-decoration: none;
 
-a:hover {
-    color: var(--color-secondary);
+    &:hover {
+        color: var(--color-secondary);
+    }
 }
 
 #output-container {
-    background-color: #2b2b2b;
-    border-radius: 20px;
-    margin: 0.5em;
-    padding-right: 0.5em;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--spacing-m);
+    margin: var(--spacing-xs);
+    padding-right: var(--spacing-xs);
+
     position: fixed;
     top: 80vh;
     left: 0;
     right: 0;
     height: 18vh;
+
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+
     -webkit-overflow-scrolling: touch;
 }
 
 .shadow-overlay {
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    margin: 0.5em;
+    border-top-left-radius: var(--spacing-m);
+    border-bottom-left-radius: var(--spacing-m);
+    margin: var(--spacing-xs);
+
     position: fixed;
     top: 80vh;
     left: 0;
@@ -160,20 +164,22 @@ a:hover {
 
 #output {
     position: absolute;
-    top: 2em;
-    left: 3em;
+
+    top: 0;
+    left: 0;
+    padding: var(--spacing-xl) 0 var(--spacing-xl) var(--spacing-xxl);
 }
 
 #cp-output {
     position: sticky;
-    top: 1.5em;
+    top: var(--spacing-l);
     align-self: flex-end;
     z-index: 6;
 
-    background-color: #303133;
-    border-radius: 1em;
+    background-color: var(--color-bg-secondary-light);
+    border-radius: var(--spacing-m);
 
-    padding: 0.5em 1em 0.5em 1em;
+    padding: var(--spacing-xs) var(--spacing-m) var(--spacing-xs) var(--spacing-m);
     border: 1px solid transparent;
 
     &:hover {
@@ -192,73 +198,157 @@ a:hover {
     position: fixed;
     top: 0;
     left: 0;
+
     width: 100vw;
     height: 100vh;
     display: block;
-    z-index: -1;
 
+    z-index: -1;
 }
 
-/*:root {*/
-/*  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;*/
-/*  line-height: 1.5;*/
-/*  font-weight: 400;*/
+/* GUI Positioning */
+.gui,
+.lil-gui {
+    position: fixed !important;
+    top: var(--spacing-xxl) !important;
+    right: var(--spacing-l) !important;
+}
 
-/*  color-scheme: light dark;*/
-/*  color: rgba(255, 255, 255, 0.87);*/
-/*  background-color: #242424;*/
+/* GUI Custom Styling */
+.lil-gui {
+    --background-color: var(--color-bg-secondary) !important;
+    --widget-color: var(--color-bg-secondary-light) !important;
+    --focus-color: var(--color-secondary) !important;
+    --hover-color: var(--color-secondary-dark) !important;
+    --font-family: var(--ff) !important;
+    --text-color: rgba(255, 255, 255, 0.87) !important;
+    --title-background-color: var(--color-bg-secondary-light) !important;
+    --title-text-color: var(--color-secondary-light) !important;
+    --number-color: var(--color-secondary-light) !important;
+    --string-color: var(--color-primary-light) !important;
 
-/*  font-synthesis: none;*/
-/*  text-rendering: optimizeLegibility;*/
-/*  -webkit-font-smoothing: antialiased;*/
-/*  -moz-osx-font-smoothing: grayscale;*/
-/*}*/
+    border-radius: var(--spacing-m) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    overflow: hidden !important;
+    font-size: 1rem !important;
+}
 
-/*a {*/
-/*  font-weight: 500;*/
-/*  color: #646cff;*/
-/*  text-decoration: inherit;*/
-/*}*/
-/*a:hover {*/
-/*  color: #535bf2;*/
-/*}*/
+.lil-gui.root {
+    border-radius: var(--spacing-m) !important;
+}
 
-/** {*/
-/*  margin: 0;*/
-/*  padding: 0;*/
-/*  box-sizing: border-box;*/
-/*}*/
+.lil-gui .children {
+    border-bottom-left-radius: var(--spacing-m) !important;
+    border-bottom-right-radius: var(--spacing-m) !important;
+    overflow: hidden !important;
+    padding: var(--spacing-s) 0 var(--spacing-m) 0 !important;
+}
 
-/*body {*/
-/*  margin: 0;*/
-/*  display: flex;*/
-/*  align-items: center;*/
-/*  justify-content: center;*/
-/*  min-width: 100vw;*/
-/*  min-height: 100vh;*/
-/*}*/
+/* GUI Title */
+.lil-gui .title {
+    background-color: var(--color-bg-secondary-light) !important;
+    color: var(--color-secondary-light) !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    font-size: 1rem !important;
+    border-top-left-radius: var(--spacing-m) !important;
+    border-top-right-radius: var(--spacing-m) !important;
+    padding: var(--spacing-m) !important;
+}
 
-/*#output-container {*/
-/*  background-color: #2b2b2b;*/
-/*  border-radius: 20px;*/
-/*  padding: 1.5em;*/
-/*  position: relative; !* Create positioning context *!*/
-/*}*/
+/* GUI Controllers */
+.lil-gui .controller {
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
 
-/*#cp-output {*/
-/*  position: absolute;*/
-/*  top: 1em;*/
-/*  right: 1em;*/
-/*}*/
+.lil-gui .controller:hover {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+}
 
-/*#app {*/
-/*  width: 100%;*/
-/*  height: 100%;*/
-/*}*/
+/* GUI Input Fields */
+.lil-gui input[type="text"],
+.lil-gui input[type="number"] {
+    background-color: var(--color-bg-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--spacing-xs) !important;
+    color: var(--color-secondary-light) !important;
+    transition: all 0.2s ease !important;
+    font-size: 0.8rem !important;
+    padding: var(--spacing-xs) !important;
+}
 
-/*#canvas {*/
-/*  display: block;*/
-/*  width: 100%;*/
-/*  height: 100%;*/
-/*  z-index: 10;*/
-/*}*/
+.lil-gui input[type="text"]:focus,
+.lil-gui input[type="number"]:focus {
+    border-color: var(--color-secondary) !important;
+    box-shadow: 0 0 0 2px rgba(93, 63, 211, 0.2) !important;
+    outline: none !important;
+}
+
+.lil-gui input[type="text"]:hover,
+.lil-gui input[type="number"]:hover {
+    border-color: var(--color-secondary-light) !important;
+}
+
+/* GUI Sliders */
+.lil-gui .slider {
+    background-color: var(--color-bg-primary) !important;
+    border-radius: var(--spacing-xs) !important;
+    height: 6px !important;
+}
+
+.lil-gui .slider:hover {
+    background-color: var(--color-black-light) !important;
+}
+
+.lil-gui .slider .fill {
+    background-color: var(--color-secondary) !important;
+    border-radius: var(--spacing-xs) !important;
+}
+
+.lil-gui .slider:hover .fill {
+    background-color: var(--color-secondary-light) !important;
+}
+
+.lil-gui .controller.number {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* GUI Labels */
+.lil-gui .controller .name {
+    color: rgba(255, 255, 255, 0.87) !important;
+    font-weight: 400 !important;
+    font-size: 0.85rem !important;
+}
+
+/* GUI Folder */
+.lil-gui .folder > .title {
+    background-color: var(--color-bg-secondary-light) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.lil-gui .folder > .title:hover {
+    background-color: var(--color-black-light) !important;
+}
+
+/* Scrollbar for GUI */
+.lil-gui .children::-webkit-scrollbar {
+    width: var(--spacing-xs) !important;
+}
+
+.lil-gui .children::-webkit-scrollbar-track {
+    background: var(--color-bg-primary) !important;
+}
+
+.lil-gui .children::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary) !important;
+    border-radius: var(--spacing-xs) !important;
+}
+
+.lil-gui .children::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-secondary-light) !important;
+}
+

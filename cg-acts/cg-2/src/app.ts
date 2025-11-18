@@ -179,16 +179,14 @@ class App {
     }
 
     #setUpUI() {
-        const gui = new GUI();
-        const folderConfigObj = gui.addFolder('Object configuration (.obj)');
+        const gui = new GUI({ title: 'Object Controls' });
+        gui.domElement.classList.add('gui');
 
-        folderConfigObj.onChange(this.#buildObject.bind(this));
-        folderConfigObj.add(this.sceneObject, 'faces', 3, 36, 1).name(`Number of Faces`);
-        folderConfigObj.add(this.sceneObject, 'height', 1.0, 2.0, 0.005).name('Height');
-        folderConfigObj.add(this.sceneObject, 'upperRadius', 0.5, 2.0, 0.005).name('Upper radius');
-        folderConfigObj.add(this.sceneObject, 'lowerRadius', 0.5, 2.0, 0.005).name('Lower radius');
-
-        folderConfigObj.open();
+        gui.onChange(this.#buildObject.bind(this));
+        gui.add(this.sceneObject, 'faces', 3, 36, 1).name(`Number of Faces`);
+        gui.add(this.sceneObject, 'height', 1.0, 2.0, 0.005).name('Height');
+        gui.add(this.sceneObject, 'upperRadius', 0.5, 2.0, 0.005).name('Upper radius');
+        gui.add(this.sceneObject, 'lowerRadius', 0.5, 2.0, 0.005).name('Lower radius');
     }
 
     private readonly output: HTMLElement;
