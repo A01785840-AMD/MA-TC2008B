@@ -1,3 +1,6 @@
+import GUI from 'lil-gui';
+
+
 interface args {
     start?: number;
     end?: number;
@@ -42,10 +45,75 @@ function handleFileDownload(getContent: () => Blob) {
 
 type Vertex = { x: number, y: number, z: number };
 
+
+function makeGUIDraggable(gui: GUI) {
+    const guiElement = gui.domElement;
+    const titleElement = guiElement.querySelector('.lil-title') as HTMLElement;
+
+    if (!titleElement) return;
+
+    let isDragging = false;
+    let hasMoved = false;
+    let offsetX = 0;
+    let offsetY = 0;
+    let startX = 0;
+    let startY = 0;
+    const DRAG_THRESHOLD = 5;
+
+    titleElement.addEventListener('mousedown', (e: MouseEvent) => {
+        isDragging = true;
+        hasMoved = false;
+
+        const rect = guiElement.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        titleElement.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mousemove', (e: MouseEvent) => {
+        if (!isDragging) return;
+
+        const deltaX = Math.abs(e.clientX - startX);
+        const deltaY = Math.abs(e.clientY - startY);
+
+        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+            hasMoved = true;
+            e.preventDefault();
+
+            const newX = e.clientX - offsetX;
+            const newY = e.clientY - offsetY;
+
+            guiElement.style.setProperty('left', `${newX}px`, 'important');
+            guiElement.style.setProperty('top', `${newY}px`, 'important');
+            guiElement.style.setProperty('right', 'auto', 'important');
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            titleElement.style.cursor = 'grab';
+        }
+    });
+
+    titleElement.addEventListener('click', (e: MouseEvent) => {
+        if (hasMoved) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            hasMoved = false;
+        }
+    }, true);
+}
+
 export {
     iota,
     polarToCartesian,
-    handleFileDownload
+    handleFileDownload,
+    makeGUIDraggable
 };
 
 export type { Vertex };

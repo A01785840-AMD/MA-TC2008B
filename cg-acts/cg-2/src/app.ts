@@ -1,6 +1,6 @@
 import GUI from "lil-gui";
 import type {Vertex} from "./libs/utils.ts";
-import {handleFileDownload, iota, polarToCartesian} from "./libs/utils.ts";
+import {handleFileDownload, iota, polarToCartesian, makeGUIDraggable} from "./libs/utils.ts";
 
 
 class App {
@@ -31,37 +31,30 @@ class App {
     }
 
     getContentAsArrays() {
-        const arr = {
+        return {
             position: this.sceneObject.position,
             indices: this.sceneObject.indices
         };
-        console.log(arr);
-        return arr;
     }
 
     getContentAsLinesArrays() {
-        // Convert triangle indices to line indices
         const lineIndices: number[] = [];
         const triangleIndices = this.sceneObject.indices;
 
-        // Process triangles (every 3 indices form a triangle)
         for (let i = 0; i < triangleIndices.length; i += 3) {
             const v0 = triangleIndices[i];
             const v1 = triangleIndices[i + 1];
             const v2 = triangleIndices[i + 2];
 
-            // Add the three edges of the triangle
             lineIndices.push(v0, v1);
             lineIndices.push(v1, v2);
             lineIndices.push(v2, v0);
         }
 
-        const arr = {
+        return {
             position: this.sceneObject.position,
             indices: lineIndices
         };
-        console.log('Line indices:', arr);
-        return arr;
     }
 
     get #content(): string {
@@ -128,7 +121,7 @@ class App {
         } else {
             const index = this.sceneObject.totalVertices + 1;
             this.sceneObject.vertexGroups[1].push(`v 0 0 0`);
-            this.sceneObject.position.push(0, 0,0);
+            this.sceneObject.position.push(0, 0, 0);
             this.sceneObject.vertexGroups[1].push(`v 0 0 ${this.sceneObject.height}`);
             this.sceneObject.position.push(0, this.sceneObject.height, 0); // z and y swaped
 
@@ -179,13 +172,15 @@ class App {
     }
 
     #setUpUI() {
-        const gui = new GUI({ title: 'Object Controls', width: 500 });
+        const gui = new GUI({title: 'Object Controls', width: 500});
 
         gui.onChange(this.#buildObject.bind(this));
         gui.add(this.sceneObject, 'faces', 3, 36, 1).name(`Faces`);
         gui.add(this.sceneObject, 'height', 1.0, 2.0, 0.005).name('Height');
         gui.add(this.sceneObject, 'upperRadius', 0.5, 2.0, 0.005).name('Upper radius');
         gui.add(this.sceneObject, 'lowerRadius', 0.5, 2.0, 0.005).name('Lower radius');
+
+        makeGUIDraggable(gui);
     }
 
     private readonly output: HTMLElement;

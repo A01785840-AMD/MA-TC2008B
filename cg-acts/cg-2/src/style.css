@@ -224,12 +224,15 @@ a {
 
 .lil-root {
     border-radius: var(--spacing-m);
+
+    position: fixed !important;
+    top: var(--spacing-xxl) !important;
+    right: var(--spacing-l) !important;
+
+    z-index: 1000;
 }
 
 .lil-gui {
-    position: fixed;
-    top: var(--spacing-xxl) !important;
-    right: var(--spacing-l) !important;
 
     --background-color: var(--color-bg-secondary);
     --widget-color: var(--color-bg-secondary-light);
@@ -246,7 +249,6 @@ a {
     /*--font-family: var(--ff) !important;*/
     /*font-size: 0.85rem !important;*/
     /*--string-color: var(--color-primary-light) !important;*/
-
 }
 
 .lil-title {
@@ -310,4 +312,12 @@ a {
     &:focus {
         border-color: var(--color-secondary-light);
     }
+}
+
+.lil-gui .lil-title {
+    cursor: grab;
+}
+
+.lil-gui .lil-title:active {
+    cursor: grabbing;
 }
