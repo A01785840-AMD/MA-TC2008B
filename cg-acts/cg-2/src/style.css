@@ -5,14 +5,14 @@
 }
 
 :root {
-    --ff: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    --ff2: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    --ff: 'Inter', system-ui, -apple-system, sans-serif;
+    --ff2: 'JetBrains Mono', 'Courier New', monospace;
 
-    --h1: 800 3.2rem/1.2em var(--ff2);
-    --h2: bold 1.5rem/1.4em var(--ff2);
-    --p: 1rem/1.4em var(--ff);
-    --p2: 0.875rem/1.4em var(--ff);
-    --a: 500 1rem/1.4 var(--ff);
+    --h1: 800 3.2rem/1.2em var(--ff);
+    --h2: 700 1.5rem/1.4em var(--ff);
+    --p: 400 1rem/1.5em var(--ff);
+    --p2: 400 0.875rem/1.5em var(--ff);
+    --a: 500 1rem/1.5 var(--ff);
 
     --spacing-xxs: 0.25rem;
     --spacing-xs: 0.5rem;
@@ -63,13 +63,15 @@
     }
 
     ::-webkit-scrollbar-track {
-        background: var(--color-black);
-        border-radius: 1px;
+        background: var(--color-black-light);
+        border-radius: 10px;
+        margin: 2px;
     }
 
     ::-webkit-scrollbar-thumb {
-        background-color: var(--color-secondary);
-        border-radius: var(--spacing-m);
+        background-color: var(--color-secondary-light);
+        border-radius: 10px;
+        border: 2px solid var(--color-black-light);
         max-height: 3.125em;
         height: 3.125em;
     }
@@ -79,12 +81,17 @@
         height: 3.125em;
     }
 
-    ::-webkit-scrollbar-thumb:active {
+    ::-webkit-scrollbar-thumb:hover {
         background-color: var(--color-secondary);
     }
 
+    ::-webkit-scrollbar-thumb:active {
+        background-color: var(--color-secondary-dark);
+    }
+
     ::-webkit-scrollbar-corner {
-        background-color: var(--color-black);
+        background-color: var(--color-black-light);
+        border-radius: 10px;
     }
 }
 
@@ -148,8 +155,7 @@ a {
 }
 
 .shadow-overlay {
-    border-top-left-radius: var(--spacing-m);
-    border-bottom-left-radius: var(--spacing-m);
+    border-radius: var(--spacing-m) var(--spacing-xxs) var(--spacing-xxs) var(--spacing-m);
     margin: var(--spacing-xs);
 
     position: fixed;
@@ -169,6 +175,10 @@ a {
     top: 0;
     left: 0;
     padding: var(--spacing-xl) 0 var(--spacing-xl) var(--spacing-xxl);
+
+    color: var(--color-gray70);
+    font-size: 0.875rem;
+    letter-spacing: var(--spacing-xxs);
 }
 
 #cp-output {
@@ -176,6 +186,10 @@ a {
     top: var(--spacing-l);
     align-self: flex-end;
     z-index: 6;
+
+    /*text-transform: uppercase;*/
+    font-size: 1.125rem;
+    font-weight: 700;
 
     background-color: var(--color-bg-secondary-light);
     border-radius: var(--spacing-m);
@@ -254,7 +268,7 @@ a {
 
 .lil-children {
     padding: var(--spacing-xs) var(--spacing-s);
-    font: normal 0.9rem/0em var(--ff);
+    font: normal 0.9rem/1.5 var(--ff);
 
     letter-spacing: var(--spacing-xxs) !important;
     text-transform: uppercase;

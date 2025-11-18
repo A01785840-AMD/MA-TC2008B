@@ -22,7 +22,7 @@ function main() {
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = (`
         <canvas id="canvas"></canvas>
         <div id="container">
-            <h1>OBJECT GENERATOR</h1> 
+            <h1>.obj generator</h1> 
         </div>
         <div id="output-container">
             <div class="shadow-overlay"></div>
