@@ -1,6 +1,6 @@
 import GUI from "lil-gui";
-import {iota, polarToCartesian, handleFileDownload} from "./libs/utils.ts";
 import type {Vertex} from "./libs/utils.ts";
+import {handleFileDownload, iota, polarToCartesian} from "./libs/utils.ts";
 
 
 class App {
@@ -15,7 +15,9 @@ class App {
             vertexGroups: [],
             indexes: [],
             totalVertices: 0,
-            verticesPerGroup: 0
+            verticesPerGroup: 0,
+            position: [],
+            indices: []
         };
 
         cpOutput.addEventListener('click', handleFileDownload(() => {
@@ -26,6 +28,40 @@ class App {
     run() {
         this.#buildObject();
         this.#setUpUI();
+    }
+
+    getContentAsArrays() {
+        const arr = {
+            position: this.sceneObject.position,
+            indices: this.sceneObject.indices
+        };
+        console.log(arr);
+        return arr;
+    }
+
+    getContentAsLinesArrays() {
+        // Convert triangle indices to line indices
+        const lineIndices: number[] = [];
+        const triangleIndices = this.sceneObject.indices;
+
+        // Process triangles (every 3 indices form a triangle)
+        for (let i = 0; i < triangleIndices.length; i += 3) {
+            const v0 = triangleIndices[i];
+            const v1 = triangleIndices[i + 1];
+            const v2 = triangleIndices[i + 2];
+
+            // Add the three edges of the triangle
+            lineIndices.push(v0, v1);
+            lineIndices.push(v1, v2);
+            lineIndices.push(v2, v0);
+        }
+
+        const arr = {
+            position: this.sceneObject.position,
+            indices: lineIndices
+        };
+        console.log('Line indices:', arr);
+        return arr;
     }
 
     get #content(): string {
@@ -60,32 +96,54 @@ class App {
         this.sceneObject.vertexGroups = vertexGroups;
         this.sceneObject.totalVertices = totalVertices;
         this.sceneObject.verticesPerGroup = verticesPerGroup;
+
+        this.sceneObject.position = vertexGroupsLiterals.flat(2).map(vrt => [vrt.x, vrt.z, vrt.y]).flat() as number[];
+        this.sceneObject.indices.length = 0;
+
+        iota({end: this.sceneObject.verticesPerGroup, exclusive: true}).forEach(i => {
+            this.sceneObject.indices.push(...[this.sceneObject.indexes[1][i + 1], this.sceneObject.indexes[1][i], this.sceneObject.indexes[0][i]]);
+            this.sceneObject.indices.push(...[this.sceneObject.indexes[0][i], this.sceneObject.indexes[0][i + 1], this.sceneObject.indexes[1][i + 1]]);
+        });
+
+        this.sceneObject.indices = this.sceneObject.indices.map(i => i - 1);
     }
 
     #buildTopBottom(): string {
         const buffer: string[] = [];
+        const indicesBuffer: number[] = [];
         if (this.sceneObject.faces === 3) {
             buffer.push(`f 3 2 1`);
+            indicesBuffer.push(3, 2, 1);
             buffer.push(`f 4 5 6`);
+            indicesBuffer.push(4, 5, 6);
         } else if (this.sceneObject.faces === 4) {
             buffer.push('f 5 6 7');
+            indicesBuffer.push(5, 6, 7);
             buffer.push('f 7 8 5');
+            indicesBuffer.push(7, 8, 5);
             buffer.push('f 3 2 1');
+            indicesBuffer.push(3, 2, 1);
             buffer.push('f 1 4 3');
+            indicesBuffer.push(1, 4, 3);
         } else {
             const index = this.sceneObject.totalVertices + 1;
             this.sceneObject.vertexGroups[1].push(`v 0 0 0`);
+            this.sceneObject.position.push(0, 0,0);
             this.sceneObject.vertexGroups[1].push(`v 0 0 ${this.sceneObject.height}`);
+            this.sceneObject.position.push(0, this.sceneObject.height, 0); // z and y swaped
 
             buffer.push('# Top bottom faces')
             iota({start: 1, end: this.sceneObject.verticesPerGroup}).forEach(i => {
                 const linkIndex = i % this.sceneObject.verticesPerGroup + 1;
 
                 buffer.push(`f ${i} ${index} ${linkIndex}`);
+                indicesBuffer.push(i, index, linkIndex,);
                 buffer.push(`f ${this.sceneObject.verticesPerGroup + linkIndex} ${index + 1} ${this.sceneObject.verticesPerGroup + i}`);
+                indicesBuffer.push(this.sceneObject.verticesPerGroup + linkIndex, index + 1, this.sceneObject.verticesPerGroup + i,);
                 buffer.push('');
             });
         }
+        this.sceneObject.indices.push(...indicesBuffer.map(i => i - 1));
 
         return buffer.join('\n');
     }
@@ -140,6 +198,7 @@ class App {
         upperRadius: number; lowerRadius: number;
         vertexGroups: string[][]; indexes: number[][];
         totalVertices: number; verticesPerGroup: number;
+        position: number[], indices: number[];
     };
 }
 

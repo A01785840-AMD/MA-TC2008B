@@ -40,30 +40,7 @@ function main() {
     const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
     const programInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
-    const arrays = {
-        position: [
-            -1, -1, -1,
-            1, -1, -1,
-            1, 1, -1,
-            -1, 1, -1,
-
-            -1, -1, 1,
-            1, -1, 1,
-            1, 1, 1,
-            -1, 1, 1,
-        ],
-
-        indices: [
-            0, 1, 2, 0, 2, 3, // back
-            4, 5, 6, 4, 6, 7, // front
-            0, 4, 7, 0, 7, 3, // left
-            1, 5, 6, 1, 6, 2, // right
-            0, 1, 5, 0, 5, 4, // bottom
-            3, 2, 6, 3, 6, 7, // top
-        ]
-    }
-    const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
-
+    const bufferInfo = twgl.createBufferInfoFromArrays(gl, app.getContentAsLinesArrays());
 
     function render(time: DOMHighResTimeStamp) {
         twgl.resizeCanvasToDisplaySize(canvas);
@@ -92,7 +69,7 @@ function main() {
 
         twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
         twgl.setUniforms(programInfo, {u_matrix: worldViewProjection, time: time});
-        twgl.drawBufferInfo(gl, bufferInfo);
+        twgl.drawBufferInfo(gl, bufferInfo, gl.LINES);
 
 
         requestAnimationFrame(render);
