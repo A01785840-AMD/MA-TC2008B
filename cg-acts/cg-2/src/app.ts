@@ -4,23 +4,11 @@ import * as twgl from 'twgl-base.js';
 import type {ProgramInfo} from "twgl-base.js";
 import type {Vertex} from "./libs/utils.ts";
 
+import vsGLSL from './shaders/vertex.glsl?raw';
+import fsGLSL from './shaders/fragment.glsl?raw';
+
 import {M4} from './libs/3d-lib.ts';
 import {handleFileDownload, iota, polarToCartesian, makeGUIDraggable} from "./libs/utils.ts";
-
-
-const vsGLSL = `#version 300 es
-in vec4 position;
-uniform mat4 u_matrix;
-void main() {
-  gl_Position = u_matrix * position;
-}`;
-
-const fsGLSL = `#version 300 es
-precision highp float;
-out vec4 outColor;
-void main() {
-  outColor = vec4(0.267, 0.290, 0.953, 1);
-}`;
 
 
 class App {
