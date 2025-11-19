@@ -1,5 +1,6 @@
 #version 300 es
 
+precision highp float;
 in vec4 position;
 uniform mat4 u_matrix;
 
