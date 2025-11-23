@@ -8,7 +8,7 @@ import vsGLSL from './shaders/vertex.glsl?raw';
 import fsGLSL from './shaders/fragment.glsl?raw';
 
 import {M4} from './libs/3d-lib.ts';
-import {mat4, vec3, quad} from `gl-matrix`;
+// import {mat4, vec3, quad} from `gl-matrix`;
 
 
 class App {
@@ -55,10 +55,7 @@ class App {
 
         time = time * 0.0001;
 
-        const bufferInfo = twgl.createBufferInfoFromArrays(this.gl, this.getContentAsLinesArrays());
-
         const eye = [5, 5, 5];
-
         const up = [0, 1, 0];
         const target = [0, 0, 0];
         const camera = M4.lookAt(eye, target, up);
@@ -72,12 +69,13 @@ class App {
 
         const fov = 60 * Math.PI / 180;
         const aspect = window.innerWidth / window.innerHeight;
-
         const projection = M4.perspective(fov, aspect, 0.1, 100);
         const viewProjection = M4.multiply(M4.multiply(projection, view), M4.identity());
 
         const world = M4.scaling([this.sceneObject.scale.n, this.sceneObject.scale.n, this.sceneObject.scale.n]);
         const worldViewProjection = M4.multiply(viewProjection, world);
+
+        const bufferInfo = twgl.createBufferInfoFromArrays(this.gl, this.getContentAsLinesArrays());
 
         twgl.setBuffersAndAttributes(this.gl, this.programInfo, bufferInfo);
         twgl.setUniforms(this.programInfo, {u_matrix: worldViewProjection, time: time});

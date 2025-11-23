@@ -1,7 +1,7 @@
 import './style.css';
 
 import * as twgl from 'twgl.js';
-import {m4} from 'twgl.js';
+import {m4, v3} from 'twgl.js';
 
 import shaderVertex from './shaders/vs.glsl?raw';
 import shaderFaces from './shaders/fs.glsl?raw';
@@ -33,6 +33,13 @@ function appGuard({canvas, gl, programInfo, bufferInfo, vao}: any) {
     }
 }
 
+function toM3(mat4: Float32Array | number[]) {
+    return new Float32Array([
+        mat4[0], mat4[4], mat4[8],
+        mat4[1], mat4[5], mat4[9],
+        mat4[2], mat4[6], mat4[10]
+    ]);
+}
 
 function main() {
     const canvas = document.getElementById('app-canvas') as HTMLCanvasElement;
@@ -40,6 +47,7 @@ function main() {
 
     const programInfo = twgl.createProgramInfo(gl, [shaderVertex, shaderFaces]);
     const bufferInfo = twgl.primitives.createSphereBufferInfo(gl, 1.0, 12.0, 24.0);
+    // const bufferInfo = twgl.primitives.createCubeBufferInfo(gl, 1.0);
     const vao = twgl.createVAOFromBufferInfo(gl, programInfo, bufferInfo);
 
     appGuard({canvas, gl, programInfo, bufferInfo, vao});
@@ -47,7 +55,7 @@ function main() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const eye = [5, 5, 5];
+    const eye = [0, 1, -3];
     const up = [0, 1, 0];
     const target = [0, 0, 0];
     const camera = m4.lookAt(eye, target, up);
@@ -55,10 +63,12 @@ function main() {
 
     const fov = Math.PI * 0.5;
 
-    const color = new Float32Array([125 / 255, 48 / 255, 180 / 255, 1.0]);
+    const color = new Float32Array([122 / 255, 45 / 255, 185 / 255, 1.0]);
+    const cameraPosition = v3.normalize([-camera[8], -camera[9], -camera[10]]);
+    const lightPosition = v3.normalize(new Float32Array([0, 1, -3]));
 
     function render(time: DOMHighResTimeStamp) {
-        time *= 0.001;
+        time *= 0.0005;
 
         const aspect = canvas.width / canvas.height;
         const projection = m4.perspective(fov, aspect, 0.1, 100);
@@ -80,7 +90,25 @@ function main() {
         gl.useProgram(programInfo.program);
         gl.bindVertexArray(vao);
 
-        twgl.setUniforms(programInfo, {u_mvp: mvp, u_color: color});
+        twgl.setUniforms(programInfo, {
+            u_light_position: lightPosition,
+            u_view_position: cameraPosition,
+
+            u_mvp: mvp,
+            u_model: toM3(model),
+            u_inverse_mvp: toM3(m4.transpose(m4.inverse(model))),
+
+            u_intensity_ambient: color,
+            u_constant_ambient: color,
+
+            u_intensity_diffuse: color,
+            u_constant_diffuse: color,
+
+            u_intensity_specular: color,
+            u_constant_specular: color,
+            u_intensity_shining: 100,
+        });
+
         twgl.drawBufferInfo(gl, bufferInfo);
 
         requestAnimationFrame(render);
@@ -88,6 +116,5 @@ function main() {
 
     requestAnimationFrame(render);
 }
-
 
 main();
