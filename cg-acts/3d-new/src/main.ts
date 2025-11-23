@@ -6,6 +6,8 @@ import {m4} from 'twgl.js';
 import shaderVertex from './shaders/vs.glsl?raw';
 import shaderFaces from './shaders/fs.glsl?raw';
 
+import GUI from "lil-gui";
+
 
 function appGuard({canvas, gl, programInfo, bufferInfo, vao}: any) {
     if (!canvas || !gl || !programInfo || !bufferInfo || !vao) {
@@ -41,13 +43,21 @@ function toM3(mat4: Float32Array | number[]) {
     ]);
 }
 
+function setUpGUI(scene: { cameraPosition: Float32Array, lightPosition: { x: number, y: number, z: number }, }) {
+    const gui = new GUI();
+
+    gui.add(scene.lightPosition, 'x', -15, 15, 0.3);
+    gui.add(scene.lightPosition, 'y', -15, 15, 0.3);
+    gui.add(scene.lightPosition, 'z', -15, 15, 0.3);
+}
+
 function main() {
     const canvas = document.getElementById('app-canvas') as HTMLCanvasElement;
     const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
 
     const programInfo = twgl.createProgramInfo(gl, [shaderVertex, shaderFaces]);
-    const bufferInfo = twgl.primitives.createSphereBufferInfo(gl, 1.0, 12.0, 24.0);
-    // const bufferInfo = twgl.primitives.createCubeBufferInfo(gl, 1.0);
+    // const bufferInfo = twgl.primitives.createSphereBufferInfo(gl, 1.0, 12.0, 24.0);
+    const bufferInfo = twgl.primitives.createCubeBufferInfo(gl, 1.0);
     const vao = twgl.createVAOFromBufferInfo(gl, programInfo, bufferInfo);
 
     appGuard({canvas, gl, programInfo, bufferInfo, vao});
@@ -55,7 +65,7 @@ function main() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const eye = [0, 1, -3];
+    const eye = [0, 1, 10];
     const up = [0, 1, 0];
     const target = [0, 0, 0];
     const camera = m4.lookAt(eye, target, up);
@@ -64,18 +74,39 @@ function main() {
     const fov = Math.PI * 0.5;
 
     const color = new Float32Array([122 / 255, 45 / 255, 185 / 255, 1.0]);
-    const cameraPosition = new Float32Array(eye);
-    const lightPosition = new Float32Array([0, 1, -3]);
+    // const cameraPosition = new Float32Array(eye);
+    // const lightPosition = new Float32Array([2, 2, 5]);
+    const scene = {
+        cameraPosition: new Float32Array(eye),
+        lightPosition: {
+            x: 2, y: 2, z: 5
+        },
+    };
+
+    setUpGUI(scene);
+
+    const scaler = 5;
+    const rotationSpeed = Math.PI * 0.1 * 0.001;
+    let lastTime = 0;
+    let rotation = 0;
 
     function render(time: DOMHighResTimeStamp) {
-        time *= 0.0005;
+        const dt = time - lastTime;
+        lastTime = time;
+
+        rotation += rotationSpeed * dt;
 
         const aspect = canvas.width / canvas.height;
         const projection = m4.perspective(fov, aspect, 0.1, 100);
 
-        const viewProjection = m4.multiply(projection, view);
-        const model = m4.rotationY(time);
-        const mvp = m4.multiply(viewProjection, model);
+        let model = m4.identity();
+        model = m4.scale(model, [scaler, scaler, scaler]);
+        // model = m4.multiply(m4.rotationX(rotation), model);
+        model = m4.multiply(m4.rotationY(rotation), model);
+        // model = m4.multiply(m4.rotationZ(rotation), model);
+        // model = m4.translate(model, [1, 1, 1]);
+
+        const mvp = m4.multiply(m4.multiply(projection, view), model);
 
 
         gl.viewport(0.0, 0.0, canvas.width, canvas.height);
@@ -91,8 +122,8 @@ function main() {
         gl.bindVertexArray(vao);
 
         twgl.setUniforms(programInfo, {
-            u_light_position: lightPosition,
-            u_view_position: cameraPosition,
+            u_light_position: new Float32Array([scene.lightPosition.x, scene.lightPosition.y, scene.lightPosition.z]),
+            u_view_position: scene.cameraPosition,
 
             u_mvp: mvp,
             u_model: model,
