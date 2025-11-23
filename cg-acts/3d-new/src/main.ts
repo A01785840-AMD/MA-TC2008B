@@ -1,7 +1,7 @@
 import './style.css';
 
 import * as twgl from 'twgl.js';
-import {m4, v3} from 'twgl.js';
+import {m4} from 'twgl.js';
 
 import shaderVertex from './shaders/vs.glsl?raw';
 import shaderFaces from './shaders/fs.glsl?raw';
@@ -64,8 +64,8 @@ function main() {
     const fov = Math.PI * 0.5;
 
     const color = new Float32Array([122 / 255, 45 / 255, 185 / 255, 1.0]);
-    const cameraPosition = v3.normalize([-camera[8], -camera[9], -camera[10]]);
-    const lightPosition = v3.normalize(new Float32Array([0, 1, -3]));
+    const cameraPosition = new Float32Array(eye);
+    const lightPosition = new Float32Array([0, 1, -3]);
 
     function render(time: DOMHighResTimeStamp) {
         time *= 0.0005;
@@ -95,8 +95,8 @@ function main() {
             u_view_position: cameraPosition,
 
             u_mvp: mvp,
-            u_model: toM3(model),
-            u_inverse_mvp: toM3(m4.transpose(m4.inverse(model))),
+            u_model: model,
+            u_normal_matrix: toM3(m4.transpose(m4.inverse(m4.copy(model)))),
 
             u_intensity_ambient: color,
             u_constant_ambient: color,

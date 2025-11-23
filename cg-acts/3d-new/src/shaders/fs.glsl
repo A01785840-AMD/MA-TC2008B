@@ -23,7 +23,8 @@ void main() {
     float specular = 0.0;
 
     if (diffuse != 0.0) {
-        vec3 r = 2.0 * dot(v_surface_to_light, v_normal) * v_normal - v_surface_to_light;
+//        vec3 r = 2.0 * dot(v_surface_to_light, v_normal) * v_normal - v_surface_to_light;
+        vec3 r = reflect(-v_surface_to_light, v_normal); // Built-in
         specular = pow(max(dot(v_surface_to_view, r), 0.0), u_intensity_shining);
     }
 
