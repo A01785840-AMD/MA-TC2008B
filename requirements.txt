@@ -131,3 +131,8 @@ wcwidth==0.2.14
 websockets==15.0.1
 widgetsnbextension==4.0.15
 zipp==3.23.0
+
+pydantic
+flask-socketio
+flask
+eventlet

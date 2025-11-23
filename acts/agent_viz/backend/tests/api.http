@@ -1,0 +1,4 @@
+### Initialize Simulation
+POST https://{{host}}:{{port}}/api/simulation/initialize?start_simulation=true
+
+###

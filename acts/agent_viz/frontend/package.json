@@ -1,9 +1,11 @@
 {
-  "name": "3d",
+  "name": "frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prestart": "bun install",
+    "start": "vite --config vite.config.ts",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
@@ -13,6 +15,6 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
-    "twgl.js": "^7.0.0"
+    "socket.io-client": "^4.8.1"
   }
 }
